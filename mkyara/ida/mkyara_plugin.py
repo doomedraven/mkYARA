@@ -1,5 +1,4 @@
 from __future__ import print_function
-import binascii
 
 import idaapi
 import idc
@@ -23,13 +22,7 @@ INSTRUCTION_SET_MAPPING = {
 
 
 def get_input_file_hash():
-    md5 = idautils.GetInputFileMD5()
-    if isinstance(md5, bytes):
-        # return hash will be in lowercase
-        # make Python2-3 compatible
-        return "{}".format(binascii.hexlify(md5).decode())
-    else:
-        return md5
+    return idautils.GetInputFileMD5().hex()
 
 
 def get_selection():
@@ -178,7 +171,7 @@ class mkYARAPlugin(idaapi.plugin_t):
         yr_gen.add_chunk(data, offset=start, is_data=is_data)
         rule_obj = yr_gen.generate_rule()
         file_hash = get_input_file_hash()
-        rule_obj.metas["hash"] = "\"{}\"".format(file_hash)
+        rule_obj.metas["hash"] = file_hash
         rule = rule_obj.get_rule_string()
         self.dialog = YaraRuleDialog(None, start, end, rule)
         self.dialog.show()
