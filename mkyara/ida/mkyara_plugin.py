@@ -171,7 +171,7 @@ class mkYARAPlugin(idaapi.plugin_t):
         yr_gen.add_chunk(data, offset=start, is_data=is_data)
         rule_obj = yr_gen.generate_rule()
         file_hash = get_input_file_hash()
-        rule_obj.metas["hash"] = file_hash
+        rule_obj.metas["hash"] = f'"{file_hash}"'
         rule = rule_obj.get_rule_string()
         self.dialog = YaraRuleDialog(None, start, end, rule)
         self.dialog.show()
