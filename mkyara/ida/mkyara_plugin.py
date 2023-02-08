@@ -46,7 +46,7 @@ def get_inf_structure_bitness(info):
 
 def get_arch_info():
     info = idaapi.get_inf_structure()
-    proc = info.procName.lower()
+    proc = info.procname.lower()
     bits = get_inf_structure_bitness(info)
     instruction_set = None
     instruction_mode = None
