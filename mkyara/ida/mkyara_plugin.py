@@ -1,12 +1,15 @@
-from __future__ import print_function
-
 import idaapi
 import idc
 import idautils
+from contextlib import suppress
 
-from mkyara import (
-    YaraGenerator,
-)
+IDA9 = False
+with suppress(ImportError):
+    import ida_ida
+    IDA9 = True
+
+
+from mkyara import YaraGenerator
 from capstone import (
     CS_ARCH_X86,
     CS_MODE_16,
@@ -20,6 +23,11 @@ INSTRUCTION_SET_MAPPING = {
     'metapc': CS_ARCH_X86,
 }
 
+INSTRUCTION_MODE = {
+    16: CS_MODE_16,
+    32: CS_MODE_32,
+    64: CS_MODE_64,
+}
 
 def get_input_file_hash():
     return idautils.GetInputFileMD5().hex()
@@ -34,7 +42,6 @@ def get_selection():
         end = idaapi.get_item_end(ea)
     return start, end
 
-
 def get_inf_structure_bitness(info):
     bits = 16
     if info.is_64bit():
@@ -45,20 +52,21 @@ def get_inf_structure_bitness(info):
 
 
 def get_arch_info():
-    info = idaapi.get_inf_structure()
-    proc = info.procname.lower()
-    bits = get_inf_structure_bitness(info)
+    if IDA9:
+        proc = ida_ida.inf_get_procname()
+        bits = ida_ida.inf_get_app_bitness()
+    else:
+        info = idaapi.get_inf_structure()
+        proc = info.procname.lower()
+        bits = get_inf_structure_bitness(info)
+        bits = get_inf_structure_bitness(bits)
+
     instruction_set = None
     instruction_mode = None
 
     if proc == 'metapc':
         instruction_set = CS_ARCH_X86
-        if bits == 16:
-            instruction_mode = CS_MODE_16
-        elif bits == 32:
-            instruction_mode = CS_MODE_32
-        elif bits == 64:
-            instruction_mode = CS_MODE_64
+        instruction_mode = INSTRUCTION_MODE.get(bits)
     return instruction_set, instruction_mode
 
 
